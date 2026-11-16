@@ -414,71 +414,24 @@ else:
                                                                                                "transfer-clubs")])]),
 
                 # 4. Injuries & availability 标签页
-                dcc.Tab(label="Injuries & availability", value="injuries", children=[html.Section(
-                    style={"display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(180px,1fr))",
-                           "gap": "10px", "margin": "12px 0"},
-                    children=[kpi("INJURY RECORDS", "injury-count"), kpi("DAYS MISSED", "days-missed"),
-                              kpi("GAMES MISSED", "games-missed"), kpi("PLAYERS AFFECTED", "players-injured")]),
-                                                                                     html.Section(
-                                                                                         style={"display": "grid",
-                                                                                                "gridTemplateColumns": "repeat(auto-fit,minmax(min(100%,340px),1fr))",
-                                                                                                "gap": "12px"},
-                                                                                         children=[card(
-                                                                                             "Days missed by injury type",
-                                                                                             "injury-types"), card(
-                                                                                             "Availability by year",
-                                                                                             "injury-history")]),
-                                                                                     html.Section(style={**PANEL,
-                                                                                                         "marginTop": "12px"},
-                                                                                                  children=[html.H3(
-                                                                                                      "Longest absences",
-                                                                                                      style={
-                                                                                                          "fontSize": "16px"}),
-                                                                                                            table(
-                                                                                                                "injury-table",
-                                                                                                                [(
-                                                                                                                 "Player",
-                                                                                                                 "player_name",
-                                                                                                                 False),
-                                                                                                                 (
-                                                                                                                 "Injury",
-                                                                                                                 "injury_reason",
-                                                                                                                 False),
-                                                                                                                 (
-                                                                                                                 "Season",
-                                                                                                                 "season",
-                                                                                                                 False),
-                                                                                                                 (
-                                                                                                                 "Days",
-                                                                                                                 "days_missed",
-                                                                                                                 True),
-                                                                                                                 (
-                                                                                                                 "Games",
-                                                                                                                 "games_missed",
-                                                                                                                 True)])])]),
-
+                dcc.Tab(label="Injuries & availability", value="injuries", children=[
+                    html.Section(style={"display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(180px,1fr))",
+                                        "gap": "10px", "margin": "12px 0"},
+                                 children=[kpi("INJURY RECORDS", "injury-count"), kpi("DAYS MISSED", "days-missed"),
+                                           kpi("GAMES MISSED", "games-missed"),
+                                           kpi("PLAYERS AFFECTED", "players-injured")]),
+                    html.Section(
+                        style={"display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(min(100%,340px),1fr))",
+                               "gap": "12px"},
+                        children=[card("Days missed by injury type", "injury-types"),
+                                  card("Availability by year", "injury-history")]),
+                    # 【优化】：将原本的表格替换为了可视化图表卡片
+                    html.Section(
+                        style={"display": "grid", "gridTemplateColumns": "1fr", "gap": "12px", "marginTop": "12px"},
+                        children=[card("Longest player absences (Top 15)", "injury-longest-chart", height=420)])
+                ]),
                 # 5. National & clubs 标签页
-                dcc.Tab(label="National & clubs", value="teams", children=[html.Section(
-                    style={"display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(min(100%,340px),1fr))",
-                           "gap": "12px", "marginTop": "12px"},
-                    children=[card("International appearances", "national-caps"),
-                              card("International goals and caps", "national-goals")]), html.Section(
-                    style={**PANEL, "marginTop": "12px"},
-                    children=[html.H3("Club season comparison", style={"fontSize": "16px"}),
-                              card("Points by club", "club-points"), table("club-table", [("Rank", "rank", True),
-                                                                                          ("Club", "team_name", False),
-                                                                                          ("Competition",
-                                                                                           "competition_name", False),
-                                                                                          ("Season", "season", False),
-                                                                                          ("Played", "played", True),
-                                                                                          ("Wins", "wins", True),
-                                                                                          ("Draws", "draws", True),
-                                                                                          ("Losses", "losses", True),
-                                                                                          ("GF", "goals_for", True),
-                                                                                          ("GA", "goals_against", True),
-                                                                                          ("Points", "points", True)],
-                                                                           15)])]),
-            ]),
+             ]),
             html.Footer(["Source: ",
                          html.A("salimt/football-datasets", href="https://github.com/salimt/football-datasets",
                                 target="_blank", style={"color": INK}),
@@ -652,16 +605,18 @@ if DATA_READY:
                  value and not pd.isna(value)]
         physical_facts = [value for value in [f"{age} yrs" if age else None, player["height"], player["foot"]] if
                           value and not pd.isna(value)]
-        identity = html.Div([html.Img(src=player["player_image_url"], alt=player["player_name"],
-                                      style={"width": "70px", "height": "70px", "objectFit": "cover",
-                                             "borderRadius": "50%", "backgroundColor": "#edf1e8"}) if player[
-            "player_image_url"] else html.Div(
-            style={"width": "70px", "height": "70px", "borderRadius": "50%", "backgroundColor": LIME}), html.Div(
-            [html.H2(str(player["player_name"]).split(" (")[0], style={"fontSize": "22px", "margin": "0 0 3px"}),
-             html.Div(" · ".join(map(str, facts)), style={"fontSize": "12px", "color": MUTED}),
-             html.Div(" · ".join(map(str, physical_facts)),
-                      style={"fontSize": "11px", "color": MUTED, "marginTop": "4px"})])],
-                            style={"display": "flex", "alignItems": "center", "gap": "14px"})
+        identity = html.Div([
+            html.Img(src=player["player_image_url"], alt=player["player_name"],
+                     style={"width": "70px", "height": "70px", "objectFit": "cover", "borderRadius": "50%",
+                            "backgroundColor": "#edf1e8"}) if player["player_image_url"] else html.Div(
+                style={"width": "70px", "height": "70px", "borderRadius": "50%", "backgroundColor": LIME}),
+            html.Div([
+                html.H2(str(player["player_name"]).split(" (")[0], style={"fontSize": "22px", "margin": "0 0 3px"}),
+                html.Div(" · ".join(map(str, facts)), style={"fontSize": "12px", "color": MUTED}),
+                html.Div(" · ".join(map(str, physical_facts)),
+                         style={"fontSize": "11px", "color": MUTED, "marginTop": "4px"})
+            ])
+        ], style={"display": "flex", "alignItems": "center", "gap": "14px"})
         career = frame(
             "SELECT COUNT(DISTINCT season) seasons,SUM(COALESCE(goals,0)) goals,SUM(COALESCE(assists,0)) assists,SUM(COALESCE(appearances,0)) appearances,SUM(COALESCE(minutes_played,0)) AS total_minutes FROM performance WHERE player_id=TRY_CAST(? AS BIGINT)",
             [player_id]).iloc[0]
@@ -715,15 +670,15 @@ if DATA_READY:
             "SELECT CAST(transfer_date AS VARCHAR) transfer_date,from_team,to_team,transfer_fee FROM transfers WHERE player_id=TRY_CAST(? AS BIGINT) ORDER BY transfer_date DESC NULLS LAST LIMIT 100",
             [player_id])
         teammate_rows = frame("""
-                 SELECT COALESCE(SPLIT_PART(p.player_name,' (',1),t.teammate_name) AS teammate_name,
-                     COALESCE(p.sub_position,p.main_position) AS role,
-                     p.main_position,t.joint_goal_participation,t.points_per_game,t.minutes_played_together
-            FROM teammate_links t
-            LEFT JOIN profile p ON p.player_id=t.teammate_id
-            WHERE t.player_id=TRY_CAST(? AS BIGINT)
-            ORDER BY t.joint_goal_participation DESC NULLS LAST,t.points_per_game DESC NULLS LAST
-            LIMIT 100
-        """, [player_id])
+                     SELECT COALESCE(SPLIT_PART(p.player_name,' (',1),t.teammate_name) AS teammate_name,
+                         COALESCE(p.sub_position,p.main_position) AS role,
+                         p.main_position,t.joint_goal_participation,t.points_per_game,t.minutes_played_together
+                FROM teammate_links t
+                LEFT JOIN profile p ON p.player_id=t.teammate_id
+                WHERE t.player_id=TRY_CAST(? AS BIGINT)
+                ORDER BY t.joint_goal_participation DESC NULLS LAST,t.points_per_game DESC NULLS LAST
+                LIMIT 100
+            """, [player_id])
         network_nodes = [{"player": row.teammate_name, "role": row.role,
                           "joint_goals": numeric_or_zero(row.joint_goal_participation),
                           "ppg": numeric_or_zero(row.points_per_game, as_float=True),
@@ -734,8 +689,6 @@ if DATA_READY:
         return identity, kpis, market_fig, season_fig, injury_fig, records(transfer_rows), records(
             teammate_rows), network_document(
             {"player": str(player["player_name"]).split(" (")[0], "role": selected_role, "nodes": network_nodes})
-
-
     @app.callback(
         Output("valued-count", "children"), Output("transfer-count", "children"), Output("market-leader", "children"),
         Output("transfer-destination", "children"),
@@ -793,36 +746,121 @@ if DATA_READY:
             destination.iloc[0]["to_team"] if not destination.empty else "N/A"), bar, history_fig, years, clubs
 
 
-    @app.callback(Output("injury-count", "children"), Output("days-missed", "children"),
-                  Output("games-missed", "children"), Output("players-injured", "children"),
-                  Output("injury-types", "figure"), Output("injury-history", "figure"), Output("injury-table", "data"),
-                  Input("dashboard-tabs", "value"))
+    @app.callback(
+        Output("injury-count", "children"),
+        Output("days-missed", "children"),
+        Output("games-missed", "children"),
+        Output("players-injured", "children"),
+        Output("injury-types", "figure"),
+        Output("injury-history", "figure"),
+        Output("injury-longest-chart", "figure"),
+        Input("dashboard-tabs", "value"),
+    )
     def update_injuries(tab):
         if tab != "injuries":
             blank = empty_figure("Open this view to load the data")
-            return "—", "—", "—", "—", blank, blank, []
-        totals = frame(
-            "SELECT COUNT(*) cases,SUM(COALESCE(days_missed,0)) AS missed_days,SUM(COALESCE(games_missed,0)) games,COUNT(DISTINCT player_id) players FROM injuries").iloc[
-            0]
-        reasons = frame(
-            "SELECT COALESCE(injury_reason,'Unspecified') reason,SUM(COALESCE(days_missed,0)) AS missed_days,COUNT(*) cases FROM injuries GROUP BY 1 ORDER BY missed_days DESC LIMIT 12")
-        trend = frame(
-            "SELECT YEAR(from_date) AS calendar_year,COUNT(*) cases,SUM(COALESCE(days_missed,0)) AS missed_days FROM injuries WHERE from_date IS NOT NULL GROUP BY 1 ORDER BY 1")
-        longest = frame(
-            "SELECT SPLIT_PART(p.player_name,' (',1) player_name,i.injury_reason,i.season,i.days_missed,i.games_missed FROM injuries i JOIN profile p USING(player_id) ORDER BY i.days_missed DESC NULLS LAST LIMIT 250")
-        rfig = px.bar(reasons.sort_values("missed_days"), x="missed_days", y="reason", orientation="h", color="cases",
-                      color_continuous_scale=["#f1d7c7", ORANGE],
-                      labels={"missed_days": "Days missed", "reason": "Injury",
-                              "cases": "Cases"}) if not reasons.empty else empty_figure("No injuries")
-        if not reasons.empty: rfig.update_layout(coloraxis_showscale=False, yaxis_title=None);finish(rfig)
-        tfig = px.bar(trend.tail(30), x="calendar_year", y="missed_days", color="cases",
-                      color_continuous_scale="Tealgrn", labels={"calendar_year": "Year", "missed_days": "Days missed",
-                                                                "cases": "Injury records"}) if not trend.empty else empty_figure(
-            "No injury dates")
-        if not trend.empty: tfig.update_layout(coloraxis_showscale=False);finish(tfig)
-        return number(totals["cases"]), number(totals["missed_days"]), number(totals["games"]), number(
-            totals["players"]), rfig, tfig, records(longest)
+            return "—", "—", "—", "—", blank, blank, blank
 
+        totals = frame(
+            "SELECT COUNT(*) cases, SUM(COALESCE(days_missed,0)) AS missed_days, SUM(COALESCE(games_missed,0)) games, COUNT(DISTINCT player_id) players FROM injuries"
+        ).iloc[0]
+
+        reasons = frame(
+            "SELECT COALESCE(injury_reason,'Unspecified') reason, SUM(COALESCE(days_missed,0)) AS missed_days, COUNT(*) cases FROM injuries GROUP BY 1 ORDER BY missed_days DESC LIMIT 12"
+        )
+
+        # 已补全 FROM injuries
+        trend = frame(
+            "SELECT YEAR(from_date) AS calendar_year, COUNT(*) cases, SUM(COALESCE(days_missed,0)) AS missed_days FROM injuries WHERE from_date IS NOT NULL GROUP BY 1 ORDER BY 1"
+        )
+
+        # 按球员和赛季合并累计缺阵天数，确保严格从高到低排列
+        longest = frame("""
+                    SELECT 
+                        SPLIT_PART(p.player_name,' (',1) AS player_name, 
+                        COALESCE(i.season, 'N/A') AS season,
+                        STRING_AGG(DISTINCT COALESCE(i.injury_reason, 'Unspecified'), ', ') AS injury_reason,
+                        SUM(COALESCE(i.days_missed, 0)) AS days_missed, 
+                        SUM(COALESCE(i.games_missed, 0)) AS games_missed 
+                    FROM injuries i JOIN profile p USING(player_id) 
+                    WHERE i.days_missed IS NOT NULL 
+                    GROUP BY 1, 2
+                    ORDER BY days_missed DESC 
+                    LIMIT 15
+                """)
+
+        if reasons.empty:
+            rfig = empty_figure("No injuries")
+        else:
+            rfig = px.bar(
+                reasons.sort_values("missed_days"),
+                x="missed_days",
+                y="reason",
+                orientation="h",
+                color="cases",
+                color_continuous_scale=["#f1d7c7", ORANGE],
+                labels={"missed_days": "Days missed", "reason": "Injury", "cases": "Cases"},
+            )
+            rfig.update_layout(coloraxis_showscale=False, yaxis_title=None)
+            finish(rfig)
+
+        if trend.empty:
+            tfig = empty_figure("No injury dates")
+        else:
+            tfig = px.bar(
+                trend.tail(30),
+                x="calendar_year",
+                y="missed_days",
+                color="cases",
+                color_continuous_scale="Tealgrn",
+                labels={"calendar_year": "Year", "missed_days": "Days missed", "cases": "Injury records"},
+            )
+            tfig.update_layout(coloraxis_showscale=False)
+            finish(tfig)
+
+        if longest.empty:
+            longest_fig = empty_figure("No long-term absence records")
+        else:
+            longest["display_label"] = longest["player_name"] + " (" + longest["season"].fillna("N/A") + ")"
+            longest_plot = longest.sort_values("days_missed")
+            if longest.empty:
+                longest_fig = empty_figure("No long-term absence records")
+            else:
+                longest["display_label"] = longest["player_name"] + " (" + longest["season"] + ")"
+                longest_plot = longest.sort_values("days_missed")
+                max_days = float(longest_plot["days_missed"].max() or 1)
+
+                longest_fig = px.bar(
+                    longest_plot,
+                    x="days_missed",
+                    y="display_label",
+                    orientation="h",
+                    text="days_missed",  # 在柱子末端直接显示具体天数
+                    color="days_missed",
+                    color_continuous_scale=["#f1d7c7", ORANGE],
+                    labels={"days_missed": "Days missed", "display_label": "Player (Season)"},
+                    hover_data={"injury_reason": True, "games_missed": True, "display_label": False},
+                )
+                longest_fig.update_traces(textposition="outside")
+                longest_fig.update_layout(
+                    coloraxis_showscale=False,
+                    yaxis_title=None,
+                    yaxis={"categoryorder": "total ascending"},
+                    # 锁定 X 轴范围为最大值的 1.08 倍，彻底消除右侧大片空白
+                    xaxis={"range": [0, max_days * 1.08]},
+                    height=420
+                )
+                finish(longest_fig, height=420)
+
+        return (
+            number(totals["cases"]),
+            number(totals["missed_days"]),
+            number(totals["games"]),
+            number(totals["players"]),
+            rfig,
+            tfig,
+            longest_fig,
+        )
 
     @app.callback(Output("national-caps", "figure"), Output("national-goals", "figure"),
                   Output("club-points", "figure"), Output("club-table", "data"), Input("season-filter", "value"),
@@ -846,20 +884,46 @@ if DATA_READY:
             "No national records")
         if not top.empty: cap_fig.update_layout(coloraxis_showscale=False, yaxis_title=None);finish(cap_fig)
         if not national.empty: finish(scatter)
-        clauses = ["points IS NOT NULL"];
+        clauses = ["points IS NOT NULL", "played > 0"]
         params = []
-        if season: clauses.append("season=?");params.append(season)
-        if competition: clauses.append("competition_name=?");params.append(competition)
+        if season:
+            clauses.append("season=?")
+            params.append(season)
+        if competition:
+            clauses.append("competition_name=?")
+            params.append(competition)
+
+        # 在 SQL 中直接计算净胜球 (GD) 和场均积分 (PPG)
         clubs = frame(
-            f"SELECT * FROM club_seasons WHERE {' AND '.join(clauses)} ORDER BY rank ASC NULLS LAST,points DESC LIMIT 500",
-            params)
-        if clubs.empty: return cap_fig, scatter, empty_figure("No club seasons for these filters"), []
-        plot = clubs.head(18).sort_values("points")
-        club_fig = px.bar(plot, x="points", y="team_name", orientation="h", color="competition_name",
-                          hover_data={"rank": True, "season": True, "goals_for": True, "goals_against": True},
-                          labels={"points": "Points", "team_name": "Club", "competition_name": "Competition"},
-                          color_discrete_sequence=COLORS);
-        club_fig.update_layout(yaxis_title=None, legend_title=None);
+            f"""
+                    SELECT *,
+                           (COALESCE(goals_for, 0) - COALESCE(goals_against, 0)) AS goal_diff,
+                           ROUND(CAST(points AS DOUBLE) / NULLIF(played, 0), 2) AS ppg
+                    FROM club_seasons 
+                    WHERE {' AND '.join(clauses)} 
+                    ORDER BY {"rank ASC NULLS LAST, points DESC" if competition else "ppg DESC, goal_diff DESC"} 
+                    LIMIT 500
+                    """,
+            params,
+        )
+        if clubs.empty:
+            return cap_fig, scatter, empty_figure("No club seasons for these filters"), []
+
+        # 图表改为按场均积分 (PPG) 对比，消除不同联赛赛程长度差异
+        plot = clubs.head(18).sort_values("ppg")
+        club_fig = px.bar(
+            plot,
+            x="ppg",
+            y="team_name",
+            orientation="h",
+            color="competition_name",
+            text="ppg",
+            hover_data={"rank": True, "season": True, "points": True, "played": True, "goal_diff": True},
+            labels={"ppg": "Points per game (PPG)", "team_name": "Club", "competition_name": "Competition"},
+            color_discrete_sequence=COLORS,
+        )
+        club_fig.update_traces(textposition="outside")
+        club_fig.update_layout(yaxis_title=None, legend_title=None, xaxis={"range": [0, 3.3]})
         finish(club_fig)
         return cap_fig, scatter, club_fig, records(clubs)
 
