@@ -1,0 +1,42 @@
+MIT License - Educational Use
+
+Copyright (c) 2026 Linhuaqian
+University of Debrecen - Data Visualization Lab
+
+This project is created for educational and study purposes only.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+EDUCATIONAL PURPOSE NOTICE:
+This dashboard was developed as part of a university course project at the 
+University of Debrecen for the Data Visualization Lab (1st Semester). 
+The project is intended for educational, learning, and academic purposes.
+
+DATASET NOTICE:
+The MIT license above applies to this project's code. The football dataset is
+derived from Transfermarkt and provided by the source repository below. That
+repository does not clearly specify dataset licensing or redistribution terms.
+Verify its usage rights with the source before redistributing or deploying the
+data. Downloaded source files and the generated local database are not included
+in this repository.
+
+Dataset source:
+https://github.com/salimt/football-datasets
