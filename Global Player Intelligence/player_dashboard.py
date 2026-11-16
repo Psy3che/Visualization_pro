@@ -9,7 +9,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-
 ROOT = Path(__file__).parent
 DB_PATH = ROOT / "Data" / "player_data.duckdb"
 DATA_READY = DB_PATH.exists()
@@ -97,7 +96,9 @@ def empty_figure(message):
 
 
 def finish(figure, height=370):
-    figure.update_layout(template="plotly_white", height=height, margin={"l": 12, "r": 12, "t": 18, "b": 30}, font={"family": "Trebuchet MS, Segoe UI, sans-serif", "color": INK}, paper_bgcolor="white", plot_bgcolor="white", transition={"duration": 420, "easing": "cubic-in-out"})
+    figure.update_layout(template="plotly_white", height=height, margin={"l": 12, "r": 12, "t": 18, "b": 30},
+                         font={"family": "Trebuchet MS, Segoe UI, sans-serif", "color": INK}, paper_bgcolor="white",
+                         plot_bgcolor="white", transition={"duration": 420, "easing": "cubic-in-out"})
     return figure
 
 
@@ -143,10 +144,12 @@ def table(table_id, columns, page_size=12):
     return dcc.Loading(
         dash_table.DataTable(
             id=table_id,
-            columns=[{"name": name, "id": key, "type": "numeric" if numeric else "text"} for name, key, numeric in columns],
+            columns=[{"name": name, "id": key, "type": "numeric" if numeric else "text"} for name, key, numeric in
+                     columns],
             data=[], page_action="native", page_size=page_size, sort_action="native",
             style_table={"overflowX": "auto"},
-            style_cell={"fontFamily": "Trebuchet MS, Segoe UI, sans-serif", "fontSize": "12px", "padding": "9px", "minWidth": "76px", "maxWidth": "230px", "whiteSpace": "normal", "textAlign": "left"},
+            style_cell={"fontFamily": "Trebuchet MS, Segoe UI, sans-serif", "fontSize": "12px", "padding": "9px",
+                        "minWidth": "76px", "maxWidth": "230px", "whiteSpace": "normal", "textAlign": "left"},
             style_header={"backgroundColor": "#edf1e8", "color": INK, "fontWeight": "700", "border": "0"},
             style_data={"border": "0", "borderBottom": "1px solid #edf0ea"},
         ),
@@ -158,11 +161,18 @@ def table(table_id, columns, page_size=12):
 def card(title, graph_id, height=370):
     graph = dcc.Graph(id=graph_id, config=GRAPH_CONFIG, style={"height": f"{height}px"})
     loading_graph = dcc.Loading(graph, type="circle", color=GREEN, delay_show=250, delay_hide=120)
-    return html.Section([html.H3(title, style={"fontSize": "16px", "margin": "0 0 6px"}), loading_graph], className="chart-panel", style={"backgroundColor": "white", "border": "1px solid #e1e6dc", "borderRadius": "6px", "padding": "15px", "minWidth": 0})
+    return html.Section([html.H3(title, style={"fontSize": "16px", "margin": "0 0 6px"}), loading_graph],
+                        className="chart-panel",
+                        style={"backgroundColor": "white", "border": "1px solid #e1e6dc", "borderRadius": "6px",
+                               "padding": "15px", "minWidth": 0})
 
 
 def kpi(title, component_id):
-    return html.Div([html.Div(title, style={"fontSize": "10px", "fontWeight": "700", "color": MUTED}), html.Div(id=component_id, style={"fontSize": "23px", "fontWeight": "700", "marginTop": "6px", "overflowWrap": "anywhere"})], className="metric-tile", style={"backgroundColor": "white", "border": "1px solid #e1e6dc", "borderRadius": "6px", "padding": "14px", "minWidth": 0})
+    return html.Div([html.Div(title, style={"fontSize": "10px", "fontWeight": "700", "color": MUTED}),
+                     html.Div(id=component_id, style={"fontSize": "23px", "fontWeight": "700", "marginTop": "6px",
+                                                      "overflowWrap": "anywhere"})], className="metric-tile",
+                    style={"backgroundColor": "white", "border": "1px solid #e1e6dc", "borderRadius": "6px",
+                           "padding": "14px", "minWidth": 0})
 
 
 def network_document(payload):
@@ -238,17 +248,24 @@ def startup():
     if not DATA_READY:
         return [], [], [], [], None, 0
     with db() as connection:
-        seasons = [row[0] for row in connection.execute("SELECT DISTINCT season FROM performance WHERE season IS NOT NULL").fetchall()]
+        seasons = [row[0] for row in
+                   connection.execute("SELECT DISTINCT season FROM performance WHERE season IS NOT NULL").fetchall()]
         seasons.sort(key=season_key, reverse=True)
-        competitions = connection.execute("SELECT competition_name,COUNT(*) n FROM performance WHERE competition_name IS NOT NULL GROUP BY 1 ORDER BY n DESC,competition_name").fetchall()
-        positions = [row[0] for row in connection.execute("SELECT DISTINCT main_position FROM profile WHERE main_position IS NOT NULL ORDER BY 1").fetchall()]
+        competitions = connection.execute(
+            "SELECT competition_name,COUNT(*) n FROM performance WHERE competition_name IS NOT NULL GROUP BY 1 ORDER BY n DESC,competition_name").fetchall()
+        positions = [row[0] for row in connection.execute(
+            "SELECT DISTINCT main_position FROM profile WHERE main_position IS NOT NULL ORDER BY 1").fetchall()]
         players = connection.execute("""
             WITH latest AS (SELECT player_id,ARG_MAX(value_eur,value_date) AS latest_value FROM market_values WHERE value_eur>0 GROUP BY player_id)
             SELECT p.player_id,SPLIT_PART(p.player_name,' (',1),p.citizenship FROM latest m JOIN profile p USING(player_id)
             ORDER BY m.latest_value DESC LIMIT 120
         """).fetchall()
-        total = sum(connection.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0] for name in ("player_profiles", "player_performances", "player_market_values", "player_injuries", "player_national_performances", "player_teammates", "player_transfers", "team_details", "team_competitions_seasons", "team_children"))
-    options = [{"label": f"{name} · {country or 'Unknown'}", "value": str(player_id)} for player_id, name, country in players]
+        total = sum(connection.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0] for name in (
+        "player_profiles", "player_performances", "player_market_values", "player_injuries",
+        "player_national_performances", "player_teammates", "player_transfers", "team_details",
+        "team_competitions_seasons", "team_children"))
+    options = [{"label": f"{name} · {country or 'Unknown'}", "value": str(player_id)} for player_id, name, country in
+               players]
     return seasons, competitions, positions, options, (options[0]["value"] if options else None), total
 
 
@@ -259,10 +276,15 @@ app.title = "Touchline | Player Intelligence"
 server = app.server
 
 PANEL = {"backgroundColor": "white", "border": "1px solid #e1e6dc", "borderRadius": "6px", "padding": "15px"}
-PAGE = {"fontFamily": "'Trebuchet MS', 'Segoe UI', sans-serif", "backgroundColor": PAPER, "color": INK, "minHeight": "100vh", "paddingBottom": "35px"}
+PAGE = {"fontFamily": "'Trebuchet MS', 'Segoe UI', sans-serif", "backgroundColor": PAPER, "color": INK,
+        "minHeight": "100vh", "paddingBottom": "35px"}
 
 if not DATA_READY:
-    app.layout = html.Main(style={**PAGE, "padding": "40px"}, children=[html.H1("Touchline: Player Intelligence"), html.P("Build the local dataset before starting the dashboard."), html.Pre("pip install -r requirements.txt\npython setup_dataset.py\npython app.py")])
+    app.layout = html.Main(style={**PAGE, "padding": "40px"}, children=[html.H1("Touchline: Player Intelligence"),
+                                                                        html.P(
+                                                                            "Build the local dataset before starting the dashboard."),
+                                                                        html.Pre(
+                                                                            "pip install -r requirements.txt\npython setup_dataset.py\npython app.py")])
 else:
     app.layout = html.Div(style=PAGE, children=[
         html.Header(style={"backgroundColor": INK, "color": "white", "padding": "24px 5vw"}, children=[
@@ -273,7 +295,6 @@ else:
                 html.P(f"{ROW_COUNT:,} records across profiles, seasons, clubs, transfers, valuations and availability",
                        style={"margin": 0, "color": "#d3ddd5"})])]),
         html.Main(style={"maxWidth": "1400px", "margin": "18px auto", "padding": "0 16px"}, children=[
-            # 全局筛选器
             html.Section(style={**PANEL, "display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(175px,1fr))",
                                 "gap": "12px", "alignItems": "end", "marginBottom": "12px"}, children=[
                 html.Div([html.Label("SEASON", style={"fontSize": "10px", "fontWeight": "700", "color": MUTED}),
@@ -296,9 +317,9 @@ else:
                                        value="goals", clearable=False)]),
             ]),
 
-            # 多标签页导航（并列同级关系，不再嵌套）
+            # 严格并列的多标签页导航结构
             dcc.Tabs(id="dashboard-tabs", value="performance", children=[
-                # 1. Performance 标签页
+                # 1. Performance 标签页（含上方两列并排图表 + 底部全球地图）
                 dcc.Tab(label="Performance", value="performance", children=[
                     html.Section(style={"display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(170px,1fr))",
                                         "gap": "10px", "margin": "12px 0"},
@@ -313,7 +334,7 @@ else:
                         html.Div(card("Across-season trend", "season-trend"), style={"gridColumn": "1 / -1"})
                     ]),
 
-                    # 底部全球地图组件（替换原表格）
+                    # 底部全球球员分布地图组件
                     dcc.Loading(
                         html.Section(style={**PANEL, "marginTop": "12px"}, children=[
                             html.Div([
@@ -325,7 +346,7 @@ else:
                             dcc.Graph(id="performance-map-chart", config=GRAPH_CONFIG, style={"height": "500px"})
                         ]),
                         type="circle", color=GREEN, delay_show=250, delay_hide=120,
-                        overlay_style={"visibility": "visible", "backgroundColor": "rgba(255,255,255,0.62)"},
+                        overlay_style={"visibility": "visible", "backgroundColor": "rgba(255,255,255,0.62)"}
                     ),
                 ]),
 
@@ -466,129 +487,381 @@ else:
         ]),
     ])
 
-    # ==================== 后端回调函数区域 ====================
+if DATA_READY:
+    @app.callback(
+        Output("player-search", "options"),
+        Input("player-search", "search_value"),
+        State("player-search", "value"),
+    )
+    def search_filter_players(search_value, selected_ids):
+        if search_value and len(search_value.strip()) >= 2:
+            pattern = f"%{search_value.strip()}%"
+            matches = frame("""
+                SELECT player_id, SPLIT_PART(player_name, ' (', 1) AS player_name, citizenship
+                FROM profile
+                WHERE player_name ILIKE ? OR COALESCE(full_name, '') ILIKE ?
+                ORDER BY player_name LIMIT 40
+            """, [pattern, pattern])
+            options = [{"label": f"{row.player_name} · {row.citizenship or 'Unknown'}", "value": str(row.player_id)} for
+                       row in matches.itertuples()]
+        else:
+            options = PLAYER_OPTIONS
 
-    if DATA_READY:
-        # 1. 上方三张图表与顶部 KPI 的回调
-        @app.callback(
-            [
-                Output("metric-leaderboard", "figure"),
-                Output("goal-assist-scatter", "figure"),
-                Output("season-trend", "figure"),
-                Output("metric-leader", "children"),
-                Output("players-count", "children"),
-                Output("goals-total", "children"),
-                Output("assists-total", "children"),
-                Output("minutes-total", "children"),
-            ],
-            [
-                Input("season-filter", "value"),
-                Input("competition-filter", "value"),
-                Input("position-filter", "value"),
-                Input("player-search", "value"),
-                Input("metric-filter", "value"),
-            ],
+        selected_ids = list(dict.fromkeys(str(value) for value in (selected_ids or []) if str(value).isdigit()))
+        missing_ids = [value for value in selected_ids if not any(option["value"] == value for option in options)]
+        if missing_ids:
+            placeholders = ", ".join("?" for _ in missing_ids)
+            selected = frame(f"""
+                SELECT player_id, SPLIT_PART(player_name, ' (', 1) AS player_name, citizenship
+                FROM profile WHERE player_id IN ({placeholders})
+            """, [int(value) for value in missing_ids])
+            options = [{"label": f"{row.player_name} · {row.citizenship or 'Unknown'}", "value": str(row.player_id)} for
+                       row in selected.itertuples()] + options
+        return options
+
+
+    # 1. Performance 页面上方图表与 KPI 回调
+    @app.callback(
+        Output("players-count", "children"), Output("goals-total", "children"), Output("assists-total", "children"),
+        Output("minutes-total", "children"),
+        Output("metric-leader", "children"), Output("metric-leaderboard", "figure"),
+        Output("goal-assist-scatter", "figure"), Output("season-trend", "figure"),
+        Input("season-filter", "value"), Input("competition-filter", "value"), Input("position-filter", "value"),
+        Input("player-search", "value"), Input("metric-filter", "value"),
+    )
+    def update_performance(season, competition, position, player_ids, metric):
+        metric = metric if metric in METRICS else "goals"
+        data = player_aggregates(season, competition, position, player_ids)
+        if data.empty:
+            empty = empty_figure("No players match these filters")
+            return "0", "0", "0", "0", "No matching players", empty, empty, empty
+        data[metric] = pd.to_numeric(data[metric], errors="coerce").fillna(0)
+        data = data.sort_values([metric, "goals", "minutes_played"], ascending=False)
+        leader = data.iloc[0]
+        suffix = f"{leader[metric]:,.2f}" if metric.endswith("per_90") else f"{leader[metric]:,.0f}"
+        leader_text = f"Top {METRICS[metric].lower()}: {leader['player_name']} · {suffix}"
+        top = data.nlargest(14, metric).sort_values(metric)
+        ranking = px.bar(top, x=metric, y="player_name", orientation="h", text=metric, color=metric,
+                         color_continuous_scale=["#dce8c6", GREEN],
+                         labels={metric: METRICS[metric], "player_name": "Player"},
+                         hover_data={"main_position": True, "citizenship": True, "appearances": True})
+        ranking.update_traces(textposition="outside")
+        ranking.update_layout(showlegend=False, coloraxis_showscale=False, xaxis_rangemode="tozero", yaxis_title=None)
+        finish(ranking)
+        scatter = px.scatter(data.nlargest(min(700, len(data)), "goals"), x="goals", y="assists", color="main_position",
+                             size="minutes_played", hover_name="player_name",
+                             hover_data={"citizenship": True, "current_club": True, "goals_per_90": ":.2f",
+                                         "assists_per_90": ":.2f"}, color_discrete_sequence=COLORS,
+                             labels={"goals": "Goals", "assists": "Assists", "main_position": "Position",
+                                     "minutes_played": "Minutes"})
+        finish(scatter)
+        trend_where, trend_params = where_for(None, competition, position, player_ids)
+        trend = frame(
+            f"SELECT f.season,{METRIC_SQL[metric]} AS metric_value FROM performance f JOIN profile p USING(player_id) WHERE f.season IS NOT NULL {trend_where} GROUP BY f.season",
+            trend_params)
+        if trend.empty:
+            trend_figure = empty_figure("No season history")
+        else:
+            trend["order"] = trend["season"].map(season_key)
+            trend = trend.sort_values("order")
+            trend_figure = px.line(trend, x="season", y="metric_value", markers=True,
+                                   labels={"season": "Season", "metric_value": METRICS[metric]})
+            trend_figure.update_traces(line={"color": GREEN, "width": 3})
+            finish(trend_figure, 350)
+        return number(len(data)), number(data["goals"].sum()), number(data["assists"].sum()), number(
+            data["minutes_played"].sum()), leader_text, ranking, scatter, trend_figure
+
+
+    # 2. Performance 页面下方全球地图回调
+    @app.callback(
+        Output("performance-map-chart", "figure"),
+        [
+            Input("season-filter", "value"),
+            Input("competition-filter", "value"),
+            Input("position-filter", "value"),
+            Input("player-search", "value"),
+        ],
+    )
+    def update_performance_map(season, competition, position, player_ids):
+        df = player_aggregates(season, competition, position, player_ids)
+        if df.empty or "citizenship" not in df.columns:
+            return empty_figure("No geographical data available for current filters.")
+
+        map_df = df.groupby("citizenship").agg(
+            player_count=("player_id", "count"),
+            total_goals=("goals", "sum")
+        ).reset_index()
+
+        fig = px.choropleth(
+            map_df,
+            locations="citizenship",
+            locationmode="country names",
+            color="total_goals",
+            hover_name="citizenship",
+            hover_data=["player_count", "total_goals"],
+            color_continuous_scale=["#edf1e8", GREEN, INK],
+            labels={"total_goals": "Total Goals", "player_count": "Players"}
         )
-        def update_performance_tab(season, competition, position, player_ids, metric_key):
-            df = player_aggregates(season, competition, position, player_ids)
-            if df.empty:
-                empty = empty_figure("No performance records match the selected filters.")
-                return empty, empty, empty, "No data available", "0", "0", "0", "0"
-
-            metric_label = METRICS.get(metric_key, "Goals")
-            total_players = len(df)
-            total_goals = number(df["goals"].sum())
-            total_assists = number(df["assists"].sum())
-            total_minutes = number(df["minutes_played"].sum())
-
-            # 排行榜
-            top_df = df.sort_values(by=metric_key, ascending=False).head(15).iloc[::-1]
-            if top_df.empty or top_df[metric_key].sum() == 0:
-                leader_fig = empty_figure(f"No {metric_label.lower()} recorded for this selection.")
-            else:
-                leader_fig = px.bar(
-                    top_df, x=metric_key, y="player_name", orientation="h",
-                    text=metric_key, color=metric_key,
-                    color_continuous_scale=["#b5d656", GREEN, INK]
-                )
-                leader_fig.update_coloraxes(showscale=False)
-                leader_fig.update_traces(texttemplate="%{text:,}", textposition="outside")
-                leader_fig.update_layout(xaxis_title=metric_label, yaxis_title="")
-                leader_fig = finish(leader_fig)
-
-            top_row = df.sort_values(by=metric_key, ascending=False).iloc[0] if not df.empty else None
-            leader_text = f"Top {metric_label.lower()}: {top_row['player_name']} · {numeric_or_zero(top_row[metric_key]):,}" if top_row is not None else ""
-
-            # 散点图
-            scatter_df = df.copy()
-            if scatter_df.empty:
-                scatter_fig = empty_figure("No scatter data available.")
-            else:
-                scatter_fig = px.scatter(
-                    scatter_df, x="goals", y="assists", size="minutes_played",
-                    color="main_position", hover_name="player_name",
-                    color_discrete_map={"Attack": GREEN, "Midfield": ORANGE, "Defender": BLUE},
-                    size_max=28
-                )
-                scatter_fig.update_layout(xaxis_title="Goals", yaxis_title="Assists")
-                scatter_fig = finish(scatter_fig)
-
-            # 跨赛季趋势图
-            where, params = where_for(None, competition, position, player_ids)
-            trend_df = frame(f"""
-                SELECT f.season, SUM(COALESCE(f.goals,0)) AS goals, SUM(COALESCE(f.assists,0)) AS assists
-                FROM performance f JOIN profile p USING(player_id) WHERE f.season IS NOT NULL {where}
-                GROUP BY f.season ORDER BY f.season
-            """, params)
-
-            if trend_df.empty:
-                trend_fig = empty_figure("No historical trend data available.")
-            else:
-                trend_fig = go.Figure()
-                trend_fig.add_trace(
-                    go.Scatter(x=trend_df["season"], y=trend_df["goals"], mode="lines+markers", name="Goals",
-                               line=dict(color=GREEN, width=3)))
-                trend_fig.add_trace(
-                    go.Scatter(x=trend_df["season"], y=trend_df["assists"], mode="lines+markers", name="Assists",
-                               line=dict(color=ORANGE, width=3)))
-                trend_fig.update_layout(xaxis_title="Season", yaxis_title="Total Count")
-                trend_fig = finish(trend_fig)
-
-            return leader_fig, scatter_fig, trend_fig, leader_text, number(
-                total_players), total_goals, total_assists, total_minutes
+        return finish(fig, height=500)
 
 
-        # 2. 底部全球地图的回调
-        @app.callback(
-            Output("performance-map-chart", "figure"),
-            [
-                Input("season-filter", "value"),
-                Input("competition-filter", "value"),
-                Input("position-filter", "value"),
-                Input("player-search", "value"),
-            ],
-        )
-        def update_performance_map(season, competition, position, player_ids):
-            df = player_aggregates(season, competition, position, player_ids)
-            if df.empty or "citizenship" not in df.columns:
-                return empty_figure("No geographical data available for current filters.")
+    @app.callback(Output("player-lookup", "options"), Input("player-lookup", "search_value"),
+                  State("player-lookup", "value"))
+    def player_search(search, selected):
+        if search and len(search.strip()) >= 2:
+            pattern = f"%{search.strip()}%"
+            matches = frame(
+                "SELECT player_id,SPLIT_PART(player_name,' (',1) player_name,citizenship FROM profile WHERE player_name ILIKE ? OR COALESCE(full_name,'') ILIKE ? ORDER BY player_name LIMIT 40",
+                [pattern, pattern])
+            options = [{"label": f"{r.player_name} · {r.citizenship or 'Unknown'}", "value": str(r.player_id)} for r in
+                       matches.itertuples()]
+        else:
+            options = PLAYER_OPTIONS
+        if selected and not any(item["value"] == str(selected) for item in options):
+            row = frame(
+                "SELECT player_id,SPLIT_PART(player_name,' (',1) player_name,citizenship FROM profile WHERE player_id=TRY_CAST(? AS BIGINT)",
+                [selected])
+            if not row.empty:
+                r = row.iloc[0]
+                options.insert(0,
+                               {"label": f"{r.player_name} · {r.citizenship or 'Unknown'}", "value": str(r.player_id)})
+        return options
 
-            map_df = df.groupby("citizenship").agg(
-                player_count=("player_id", "count"),
-                total_goals=("goals", "sum")
-            ).reset_index()
 
-            fig = px.choropleth(
-                map_df,
-                locations="citizenship",
-                locationmode="country names",
-                color="total_goals",
-                hover_name="citizenship",
-                hover_data=["player_count", "total_goals"],
-                color_continuous_scale=["#edf1e8", GREEN, INK],
-                labels={"total_goals": "Total Goals", "player_count": "Players"}
-            )
-            return finish(fig, height=500)
+    @app.callback(
+        Output("player-identity", "children"), Output("player-kpis", "children"), Output("player-market", "figure"),
+        Output("player-seasons", "figure"),
+        Output("player-injuries", "figure"), Output("player-transfers", "data"), Output("player-teammates", "data"),
+        Output("player-network", "srcDoc"),
+        Input("player-lookup", "value"),
+    )
+    def update_player(player_id):
+        if not player_id:
+            blank = empty_figure("Select a player")
+            return "Choose a player", [], blank, blank, blank, [], [], network_document(
+                {"player": "Select a player", "nodes": []})
+        profile = frame("SELECT * FROM profile WHERE player_id=TRY_CAST(? AS BIGINT)", [player_id])
+        if profile.empty:
+            blank = empty_figure("Player not found")
+            return "Player not found", [], blank, blank, blank, [], [], network_document(
+                {"player": "Player not found", "nodes": []})
+        player = profile.iloc[0]
+        dob = pd.to_datetime(player["date_of_birth"], errors="coerce")
+        age = int((pd.Timestamp(date.today()) - dob).days / 365.2425) if not pd.isna(dob) else None
+        facts = [value for value in [player["current_club"], player["citizenship"], player["main_position"]] if
+                 value and not pd.isna(value)]
+        physical_facts = [value for value in [f"{age} yrs" if age else None, player["height"], player["foot"]] if
+                          value and not pd.isna(value)]
+        identity = html.Div([html.Img(src=player["player_image_url"], alt=player["player_name"],
+                                      style={"width": "70px", "height": "70px", "objectFit": "cover",
+                                             "borderRadius": "50%", "backgroundColor": "#edf1e8"}) if player[
+            "player_image_url"] else html.Div(
+            style={"width": "70px", "height": "70px", "borderRadius": "50%", "backgroundColor": LIME}), html.Div(
+            [html.H2(str(player["player_name"]).split(" (")[0], style={"fontSize": "22px", "margin": "0 0 3px"}),
+             html.Div(" · ".join(map(str, facts)), style={"fontSize": "12px", "color": MUTED}),
+             html.Div(" · ".join(map(str, physical_facts)),
+                      style={"fontSize": "11px", "color": MUTED, "marginTop": "4px"})])],
+                            style={"display": "flex", "alignItems": "center", "gap": "14px"})
+        career = frame(
+            "SELECT COUNT(DISTINCT season) seasons,SUM(COALESCE(goals,0)) goals,SUM(COALESCE(assists,0)) assists,SUM(COALESCE(appearances,0)) appearances,SUM(COALESCE(minutes_played,0)) AS total_minutes FROM performance WHERE player_id=TRY_CAST(? AS BIGINT)",
+            [player_id]).iloc[0]
+        latest_value = scalar("SELECT MAX(value_eur) FROM market_values WHERE player_id=TRY_CAST(? AS BIGINT)",
+                              [player_id])
+        caps = scalar("SELECT SUM(matches) FROM national_performances WHERE player_id=TRY_CAST(? AS BIGINT)",
+                      [player_id])
+        kpis = [html.Div([html.Div(label, style={"fontSize": "9px", "fontWeight": "700", "color": MUTED}),
+                          html.Div(value, style={"fontSize": "18px", "fontWeight": "700", "marginTop": "4px"})],
+                         style=PANEL) for label, value in
+                [("SEASONS", number(career["seasons"])), ("GOALS", number(career["goals"])),
+                 ("ASSISTS", number(career["assists"])), ("APPEARANCES", number(career["appearances"])),
+                 ("LATEST VALUE", euro(latest_value)), ("NATIONAL CAPS", number(caps))]]
+        market = frame(
+            "SELECT value_date,MAX(value_eur) AS market_value_eur FROM market_values WHERE player_id=TRY_CAST(? AS BIGINT) AND value_date IS NOT NULL GROUP BY value_date ORDER BY value_date",
+            [player_id])
+        if market.empty:
+            market_fig = empty_figure("No valuation history")
+        else:
+            market["value_m"] = market["market_value_eur"] / 1e6
+            market_fig = px.line(market, x="value_date", y="value_m", markers=True,
+                                 labels={"value_date": "Date", "value_m": "Market value (€m)"})
+            market_fig.update_traces(line={"color": GREEN, "width": 3})
+            finish(market_fig)
+        seasons = frame(
+            "SELECT season,SUM(COALESCE(goals,0)) goals,SUM(COALESCE(assists,0)) assists FROM performance WHERE player_id=TRY_CAST(? AS BIGINT) GROUP BY season",
+            [player_id])
+        if seasons.empty:
+            season_fig = empty_figure("No performance history")
+        else:
+            seasons["order"] = seasons["season"].map(season_key)
+            long = seasons.sort_values("order").melt(id_vars=["season", "order"], value_vars=["goals", "assists"],
+                                                     var_name="metric", value_name="total")
+            season_fig = px.line(long, x="season", y="total", color="metric", markers=True,
+                                 color_discrete_sequence=[GREEN, ORANGE],
+                                 labels={"season": "Season", "total": "Total", "metric": ""})
+            season_fig.update_layout(legend_title=None)
+            finish(season_fig)
+        injury_data = frame(
+            "SELECT COALESCE(injury_reason,'Unspecified') reason,SUM(COALESCE(days_missed,0)) AS missed_days FROM injuries WHERE player_id=TRY_CAST(? AS BIGINT) GROUP BY 1 ORDER BY missed_days DESC LIMIT 10",
+            [player_id])
+        if injury_data.empty:
+            injury_fig = empty_figure("No injury records")
+        else:
+            injury_fig = px.bar(injury_data.sort_values("missed_days"), x="missed_days", y="reason", orientation="h",
+                                color="missed_days", color_continuous_scale=["#f1d7c7", ORANGE],
+                                labels={"missed_days": "Days missed", "reason": "Injury"})
+            injury_fig.update_layout(coloraxis_showscale=False, yaxis_title=None)
+            finish(injury_fig)
+        transfer_rows = frame(
+            "SELECT CAST(transfer_date AS VARCHAR) transfer_date,from_team,to_team,transfer_fee FROM transfers WHERE player_id=TRY_CAST(? AS BIGINT) ORDER BY transfer_date DESC NULLS LAST LIMIT 100",
+            [player_id])
+        teammate_rows = frame("""
+                 SELECT COALESCE(SPLIT_PART(p.player_name,' (',1),t.teammate_name) AS teammate_name,
+                     COALESCE(p.sub_position,p.main_position) AS role,
+                     p.main_position,t.joint_goal_participation,t.points_per_game,t.minutes_played_together
+            FROM teammate_links t
+            LEFT JOIN profile p ON p.player_id=t.teammate_id
+            WHERE t.player_id=TRY_CAST(? AS BIGINT)
+            ORDER BY t.joint_goal_participation DESC NULLS LAST,t.points_per_game DESC NULLS LAST
+            LIMIT 100
+        """, [player_id])
+        network_nodes = [{"player": row.teammate_name, "role": row.role,
+                          "joint_goals": numeric_or_zero(row.joint_goal_participation),
+                          "ppg": numeric_or_zero(row.points_per_game, as_float=True),
+                          "minutes": numeric_or_zero(row.minutes_played_together)} for row in
+                         teammate_rows.itertuples()]
+        selected_role = next((str(value) for value in (player["sub_position"], player["main_position"]) if
+                              value is not None and not pd.isna(value) and str(value).strip()), "Unspecified")
+        return identity, kpis, market_fig, season_fig, injury_fig, records(transfer_rows), records(
+            teammate_rows), network_document(
+            {"player": str(player["player_name"]).split(" (")[0], "role": selected_role, "nodes": network_nodes})
 
-    if __name__ == "__main__":
-        app.run(debug=False)
+
+    @app.callback(
+        Output("valued-count", "children"), Output("transfer-count", "children"), Output("market-leader", "children"),
+        Output("transfer-destination", "children"),
+        Output("market-top", "figure"), Output("market-history", "figure"), Output("transfer-years", "figure"),
+        Output("transfer-clubs", "figure"),
+        Input("dashboard-tabs", "value"),
+    )
+    def update_market(tab):
+        if tab != "market":
+            blank = empty_figure("Open this view to load the data")
+            return "—", "—", "—", "—", blank, blank, blank, blank
+        latest = frame(
+            "WITH v AS (SELECT player_id,ARG_MAX(value_eur,value_date) AS market_value_eur,MAX(value_date) AS value_date FROM market_values WHERE value_eur>0 GROUP BY player_id) SELECT SPLIT_PART(p.player_name,' (',1) player_name,p.main_position,v.market_value_eur,v.value_date FROM v JOIN profile p USING(player_id) ORDER BY v.market_value_eur DESC LIMIT 18")
+        destination = frame(
+            "SELECT to_team,COUNT(*) moves FROM transfers WHERE to_team IS NOT NULL GROUP BY 1 ORDER BY moves DESC LIMIT 12")
+        if latest.empty:
+            leader = "N/A";
+            bar = empty_figure("No valuations")
+        else:
+            leader = f"{latest.iloc[0]['player_name']} · {euro(latest.iloc[0]['market_value_eur'])}"
+            bar = px.bar(latest.sort_values("market_value_eur"), x="market_value_eur", y="player_name", orientation="h",
+                         color="market_value_eur", color_continuous_scale=["#dce8c6", GREEN],
+                         labels={"market_value_eur": "Value (€)", "player_name": "Player"},
+                         hover_data={"main_position": True, "value_date": True});
+            bar.update_layout(coloraxis_showscale=False, yaxis_title=None, xaxis_tickprefix="€");
+            finish(bar)
+        history = frame(
+            "SELECT YEAR(value_date) AS calendar_year,QUANTILE_CONT(value_eur,0.5) AS median FROM market_values WHERE value_date IS NOT NULL AND value_eur>0 GROUP BY 1 ORDER BY 1")
+        if history.empty:
+            history_fig = empty_figure("No valuation timeline")
+        else:
+            history = history.tail(25);
+            history["median_m"] = history["median"] / 1e6;
+            history_fig = px.line(history, x="calendar_year", y="median_m", markers=True,
+                                  labels={"calendar_year": "Year", "median_m": "Median value (€m)"});
+            history_fig.update_traces(line={"color": BLUE, "width": 3});
+            finish(history_fig)
+        by_year = frame(
+            "SELECT YEAR(transfer_date) AS calendar_year,COUNT(*) moves FROM transfers WHERE transfer_date IS NOT NULL GROUP BY 1 ORDER BY 1")
+        years = px.area(by_year.tail(35), x="calendar_year", y="moves",
+                        labels={"calendar_year": "Year", "moves": "Transfers"}) if not by_year.empty else empty_figure(
+            "No dated transfers")
+        if not by_year.empty:
+            years.update_traces(line_color=ORANGE, fillcolor="rgba(232,121,75,.24)");
+            finish(years)
+        clubs = px.bar(destination.sort_values("moves"), x="moves", y="to_team", orientation="h", color="moves",
+                       color_continuous_scale=["#f1d7c7", ORANGE], labels={"moves": "Records",
+                                                                           "to_team": "Destination"}) if not destination.empty else empty_figure(
+            "No destinations")
+        if not destination.empty:
+            clubs.update_layout(coloraxis_showscale=False, yaxis_title=None);
+            finish(clubs)
+        transfer_n = scalar("SELECT COUNT(*) FROM transfers")
+        return number(len(latest)), number(transfer_n), leader, str(
+            destination.iloc[0]["to_team"] if not destination.empty else "N/A"), bar, history_fig, years, clubs
+
+
+    @app.callback(Output("injury-count", "children"), Output("days-missed", "children"),
+                  Output("games-missed", "children"), Output("players-injured", "children"),
+                  Output("injury-types", "figure"), Output("injury-history", "figure"), Output("injury-table", "data"),
+                  Input("dashboard-tabs", "value"))
+    def update_injuries(tab):
+        if tab != "injuries":
+            blank = empty_figure("Open this view to load the data")
+            return "—", "—", "—", "—", blank, blank, []
+        totals = frame(
+            "SELECT COUNT(*) cases,SUM(COALESCE(days_missed,0)) AS missed_days,SUM(COALESCE(games_missed,0)) games,COUNT(DISTINCT player_id) players FROM injuries").iloc[
+            0]
+        reasons = frame(
+            "SELECT COALESCE(injury_reason,'Unspecified') reason,SUM(COALESCE(days_missed,0)) AS missed_days,COUNT(*) cases FROM injuries GROUP BY 1 ORDER BY missed_days DESC LIMIT 12")
+        trend = frame(
+            "SELECT YEAR(from_date) AS calendar_year,COUNT(*) cases,SUM(COALESCE(days_missed,0)) AS missed_days FROM injuries WHERE from_date IS NOT NULL GROUP BY 1 ORDER BY 1")
+        longest = frame(
+            "SELECT SPLIT_PART(p.player_name,' (',1) player_name,i.injury_reason,i.season,i.days_missed,i.games_missed FROM injuries i JOIN profile p USING(player_id) ORDER BY i.days_missed DESC NULLS LAST LIMIT 250")
+        rfig = px.bar(reasons.sort_values("missed_days"), x="missed_days", y="reason", orientation="h", color="cases",
+                      color_continuous_scale=["#f1d7c7", ORANGE],
+                      labels={"missed_days": "Days missed", "reason": "Injury",
+                              "cases": "Cases"}) if not reasons.empty else empty_figure("No injuries")
+        if not reasons.empty: rfig.update_layout(coloraxis_showscale=False, yaxis_title=None);finish(rfig)
+        tfig = px.bar(trend.tail(30), x="calendar_year", y="missed_days", color="cases",
+                      color_continuous_scale="Tealgrn", labels={"calendar_year": "Year", "missed_days": "Days missed",
+                                                                "cases": "Injury records"}) if not trend.empty else empty_figure(
+            "No injury dates")
+        if not trend.empty: tfig.update_layout(coloraxis_showscale=False);finish(tfig)
+        return number(totals["cases"]), number(totals["missed_days"]), number(totals["games"]), number(
+            totals["players"]), rfig, tfig, records(longest)
+
+
+    @app.callback(Output("national-caps", "figure"), Output("national-goals", "figure"),
+                  Output("club-points", "figure"), Output("club-table", "data"), Input("season-filter", "value"),
+                  Input("competition-filter", "value"), Input("dashboard-tabs", "value"))
+    def update_clubs(season, competition, tab):
+        if tab != "teams":
+            blank = empty_figure("Open this view to load the data")
+            return blank, blank, blank, []
+        national = frame(
+            "SELECT p.player_id,SPLIT_PART(p.player_name,' (',1) player_name,MAX(p.citizenship) citizenship,SUM(COALESCE(n.matches,0)) caps,SUM(COALESCE(n.goals,0)) goals FROM national_performances n JOIN profile p USING(player_id) GROUP BY p.player_id,p.player_name")
+        top = national.nlargest(16, "caps").sort_values("caps") if not national.empty else national
+        cap_fig = px.bar(top, x="caps", y="player_name", orientation="h", color="caps",
+                         color_continuous_scale=["#dce8c6", GREEN],
+                         labels={"caps": "International appearances", "player_name": "Player"},
+                         hover_data={"citizenship": True, "goals": True}) if not top.empty else empty_figure(
+            "No national records")
+        scatter = px.scatter(national.nlargest(min(700, len(national)), "caps"), x="caps", y="goals",
+                             color="citizenship", hover_name="player_name",
+                             labels={"caps": "Caps", "goals": "Goals", "citizenship": "Nationality"},
+                             color_discrete_sequence=COLORS) if not national.empty else empty_figure(
+            "No national records")
+        if not top.empty: cap_fig.update_layout(coloraxis_showscale=False, yaxis_title=None);finish(cap_fig)
+        if not national.empty: finish(scatter)
+        clauses = ["points IS NOT NULL"];
+        params = []
+        if season: clauses.append("season=?");params.append(season)
+        if competition: clauses.append("competition_name=?");params.append(competition)
+        clubs = frame(
+            f"SELECT * FROM club_seasons WHERE {' AND '.join(clauses)} ORDER BY rank ASC NULLS LAST,points DESC LIMIT 500",
+            params)
+        if clubs.empty: return cap_fig, scatter, empty_figure("No club seasons for these filters"), []
+        plot = clubs.head(18).sort_values("points")
+        club_fig = px.bar(plot, x="points", y="team_name", orientation="h", color="competition_name",
+                          hover_data={"rank": True, "season": True, "goals_for": True, "goals_against": True},
+                          labels={"points": "Points", "team_name": "Club", "competition_name": "Competition"},
+                          color_discrete_sequence=COLORS);
+        club_fig.update_layout(yaxis_title=None, legend_title=None);
+        finish(club_fig)
+        return cap_fig, scatter, club_fig, records(clubs)
+
+if __name__ == "__main__":
+    app.run(debug=False)
