@@ -864,13 +864,21 @@ if DATA_READY:
                                   labels={"calendar_year": "Year", "median_m": "Median value (€m)"});
             history_fig.update_traces(line={"color": BLUE, "width": 3});
             finish(history_fig)
+        # Exclude invalid and future dates from the transfer timeline.
         by_year = frame(
-            "SELECT YEAR(transfer_date) AS calendar_year,COUNT(*) moves FROM transfers WHERE transfer_date IS NOT NULL GROUP BY 1 ORDER BY 1")
-        years = px.area(by_year.tail(35), x="calendar_year", y="moves",
-                        labels={"calendar_year": "Year", "moves": "Transfers"}) if not by_year.empty else empty_figure(
+            "SELECT YEAR(transfer_date) AS calendar_year, COUNT(*) moves FROM transfers "
+            "WHERE transfer_date IS NOT NULL AND YEAR(transfer_date) BETWEEN 1900 AND ? "
+            "GROUP BY 1 ORDER BY 1", (date.today().year,))
+        recent_years = by_year.tail(35)
+        years = px.area(recent_years, x="calendar_year", y="moves",
+                        labels={"calendar_year": "Year", "moves": "Transfers"}) if not recent_years.empty else empty_figure(
             "No dated transfers")
-        if not by_year.empty:
-            years.update_traces(line_color=ORANGE, fillcolor="rgba(232,121,75,.24)");
+        if not recent_years.empty:
+            years.update_traces(line_color=ORANGE, fillcolor="rgba(232,121,75,.24)")
+            first_year = int(recent_years["calendar_year"].min())
+            last_year = int(recent_years["calendar_year"].max())
+            years.update_xaxes(range=[first_year - .5, last_year + .5],
+                               dtick=5 if last_year - first_year > 10 else 1, tickformat="d")
             finish(years)
         clubs = px.bar(destination.sort_values("moves"), x="moves", y="to_team", orientation="h", color="moves",
                        color_continuous_scale=["#f1d7c7", ORANGE], labels={"moves": "Records",
