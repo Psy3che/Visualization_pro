@@ -4,6 +4,7 @@ from pathlib import Path
 
 import dash
 from dash import Input, Output, State, dash_table, dcc, html
+from dash.dash_table.Format import Format
 import duckdb
 import pandas as pd
 import plotly.express as px
@@ -53,6 +54,17 @@ def records(data):
     if data.empty:
         return []
     return json.loads(data.to_json(orient="records", date_format="iso"))
+
+
+def teammate_table_records(data):
+    """Render missing teammate labels as '-' without changing numeric values."""
+    rows = records(data)
+    for row in rows:
+        for key in ("teammate_name", "role"):
+            value = row.get(key)
+            if value is None or (isinstance(value, str) and not value.strip()):
+                row[key] = "-"
+    return rows
 
 
 def number(value):
@@ -144,7 +156,8 @@ def table(table_id, columns, page_size=12):
     return dcc.Loading(
         dash_table.DataTable(
             id=table_id,
-            columns=[{"name": name, "id": key, "type": "numeric" if numeric else "text"} for name, key, numeric in
+            columns=[{"name": name, "id": key, "type": "numeric" if numeric else "text",
+                      **({"format": Format(nully="-")} if numeric else {})} for name, key, numeric in
                      columns],
             data=[], page_action="native", page_size=page_size, sort_action="native",
             style_table={"overflowX": "auto"},
@@ -686,7 +699,7 @@ if DATA_READY:
                          teammate_rows.itertuples()]
         selected_role = next((str(value) for value in (player["sub_position"], player["main_position"]) if
                               value is not None and not pd.isna(value) and str(value).strip()), "Unspecified")
-        return identity, kpis, market_fig, season_fig, injury_fig, records(transfer_rows), records(
+        return identity, kpis, market_fig, season_fig, injury_fig, records(transfer_rows), teammate_table_records(
             teammate_rows), network_document(
             {"player": str(player["player_name"]).split(" (")[0], "role": selected_role, "nodes": network_nodes})
     @app.callback(
